@@ -4,6 +4,7 @@ import { findUrl, sendMedia, resolveUrl } from '../../system/helper.js'
 const apiNaze = 'https://api.naze.biz.id'
 const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
 const apiDanzy = 'https://api.danzy.web.id/api'
+const danzyKey = process.env.DANZY_API_KEY || 'isi_apikey_disini'
 const dl = async (url) => (await axios.get(url)).data
 
 export default (ev) => {
@@ -20,7 +21,7 @@ export default (ev) => {
         
         // 1. Try Danzy API First
         try {
-          const resD = await axios.get(`${apiDanzy}/download/tiktok?url=${encodeURIComponent(finalUrl)}`)
+          const resD = await axios.get(`${apiDanzy}/download/tiktok?url=${encodeURIComponent(finalUrl)}&apikey=${danzyKey}`)
           const dD = resD.data?.data || resD.data
           if (dD && resD.data?.status !== false) {
              const images = dD.images || dD.photo || dD.slideshow
@@ -28,7 +29,8 @@ export default (ev) => {
                for (const img of images) await xp.sendMessage(chat.id, { image: { url: img }, caption: `Done ✨ (${dD.title || ''})` }, { quoted: m })
                return
              }
-             const vUrl = findUrl(dD, 'video')
+             // Prioritize direct video links if available (nowm, no_watermark, etc)
+             const vUrl = dD.nowm || dD.no_watermark || dD.video || findUrl(dD, 'video')
              if (vUrl) return await sendMedia(xp, chat, vUrl, dD.title || 'Done ✨', m, 'video')
           }
         } catch (e) { console.error('TikTok Danzy Failed:', e.message) }

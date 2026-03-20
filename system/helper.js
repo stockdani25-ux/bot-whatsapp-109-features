@@ -262,7 +262,19 @@ export const sendMedia = async (xp, chat, url, caption, m, type = 'any') => {
 
     const { fileTypeFromBuffer } = await import('file-type')
     const ft = await fileTypeFromBuffer(buffer)
+    
+    // Strict check: if it's not a recognized media type and we expect one, fail
+    if (!ft && type !== 'any') {
+      console.error(`[SendMedia] Unrecognized file type for ${type}. Buffer size: ${buffer.length}`)
+      throw new Error('Unrecognized file type')
+    }
+
     const mime = ft?.mime || (type === 'video' ? 'video/mp4' : 'image/jpeg')
+
+    // Avoid sending HTML/JSON error pages that happen to be larger than 5KB
+    if (mime.includes('text') || mime.includes('html') || mime.includes('json')) {
+      throw new Error(`Invalid mime type: ${mime}`)
+    }
 
     if (mime.startsWith('video')) {
       await xp.sendMessage(chat.id, { video: buffer, mimetype: mime, caption }, { quoted: m })
@@ -274,8 +286,9 @@ export const sendMedia = async (xp, chat, url, caption, m, type = 'any') => {
     return true
   } catch (err) {
     console.error('SendMedia error:', err.message)
+    // Fallback: only send URL if it's a direct media link or if everything else fails
     const mediaObj = type === 'video' ? { video: { url } } : { image: { url } }
-    await xp.sendMessage(chat.id, { ...mediaObj, caption }, { quoted: m })
+    if (type !== 'any') await xp.sendMessage(chat.id, { ...mediaObj, caption }, { quoted: m })
     return false
   }
 }

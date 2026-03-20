@@ -4,6 +4,7 @@ import { findUrl, sendMedia, resolveUrl } from '../../system/helper.js'
 const apiNaze = 'https://api.naze.biz.id'
 const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
 const apiDanzy = 'https://api.danzy.web.id/api'
+const danzyKey = process.env.DANZY_API_KEY || 'isi_apikey_disini'
 const dl = async (url) => (await axios.get(url)).data
 
 export default (ev) => {
@@ -49,7 +50,7 @@ export default (ev) => {
         console.error(e)
         try {
             const finalUrl = await resolveUrl(args[0])
-            const resD = await axios.get(`${apiDanzy}/download/tiktok?url=${encodeURIComponent(finalUrl)}`).catch(() => null)
+            const resD = await axios.get(`${apiDanzy}/download/tiktok?url=${encodeURIComponent(finalUrl)}&apikey=${danzyKey}`).catch(() => null)
             const audioUrlD = findUrl(resD?.data, 'audio')
             if (audioUrlD) {
                 return await xp.sendMessage(chat.id, { audio: { url: audioUrlD }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
