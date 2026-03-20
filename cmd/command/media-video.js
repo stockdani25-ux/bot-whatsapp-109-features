@@ -3,9 +3,8 @@ import { findUrl, sendMedia, resolveUrl } from '../../system/helper.js'
 
 const apiNaze = 'https://api.naze.biz.id'
 const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
-// Danzy mirrors: api.danzy.web.id, api.danzy.pub, api.danzy.my.id
-const apiDanzy = 'https://api.danzy.pub/api' 
-const danzyKey = process.env.DANZY_API_KEY || 'isi_apikey_disini'
+const apiDanzy = 'https://api.danzy.web.id/api'
+const danzyKey = process.env.DANZY_API_KEY
 const dl = async (url) => (await axios.get(url)).data
 
 export default (ev) => {
@@ -22,7 +21,8 @@ export default (ev) => {
         
         // 1. Try Danzy API First
         try {
-          const resD = await axios.get(`${apiDanzy}/download/tiktok?url=${encodeURIComponent(finalUrl)}&apikey=${danzyKey}`)
+          const danzyUrl = `${apiDanzy}/download/tiktok?url=${encodeURIComponent(finalUrl)}${danzyKey ? `&apikey=${danzyKey}` : ''}`
+          const resD = await axios.get(danzyUrl)
           const dD = resD.data?.data || resD.data
           if (dD && resD.data?.status !== false) {
              const images = dD.images || dD.photo || dD.slideshow
