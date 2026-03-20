@@ -7,6 +7,7 @@ import pino from 'pino'
 import chalk from 'chalk'
 import 'dotenv/config'
 import qrcode from 'qrcode-terminal'
+import readline from 'readline'
 import { loadAll, handleCmd } from './cmd/handle.js'
 import { getDb, saveDb, dailyReset, isOwner as checkOwner } from './system/helper.js'
 
@@ -16,6 +17,9 @@ const __dirname = path.dirname(__filename)
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('session')
     const { version } = await fetchLatestBaileysVersion()
+
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+    const question = (text) => new Promise((resolve) => rl.question(text, resolve))
 
     const sock = makeWASocket({
         version,
@@ -28,7 +32,14 @@ async function startBot() {
 
     // Pairing Code Logic
     if (process.argv.includes('--pairing') && !sock.authState.creds.registered) {
-        const phoneNumber = process.env.PHONE_NUMBER || ''
+        let phoneNumber = process.env.PHONE_NUMBER || ''
+        if (!phoneNumber) {
+            phoneNumber = await question(chalk.yellowBright('Masukkan Nomor WhatsApp kamu (contoh: 628123xxx): '))
+        }
+        rl.close()
+        
+        phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
+        
         if (phoneNumber) {
             setTimeout(async () => {
                 let code = await sock.getPairingCode(phoneNumber)
@@ -36,7 +47,7 @@ async function startBot() {
                 console.log(chalk.black.bgGreen(' PAIRING CODE ') + ` : ${chalk.bold.white(code)}`)
             }, 3000)
         } else {
-            console.log(chalk.redBright('Error: PHONE_NUMBER tidak ditemukan di .env untuk pairing code.'))
+            console.log(chalk.redBright('Error: Nomor WhatsApp tidak valid.'))
         }
     }
 
