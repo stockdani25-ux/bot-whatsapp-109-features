@@ -3,7 +3,7 @@ import { findUrl, sendMedia, resolveUrl } from '../../system/helper.js'
 
 const apiNaze = 'https://api.naze.biz.id'
 const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
-const apiDanzy = 'https://api.danzy.web.id/api'
+const apiDanzy = 'https://api.danzy.pub/api'
 const danzyKey = process.env.DANZY_API_KEY || 'isi_apikey_disini'
 const dl = async (url) => (await axios.get(url)).data
 

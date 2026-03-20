@@ -236,11 +236,14 @@ export const findUrl = (d, type = 'any') => {
 
 export const fetchBuffer = async (url, options = {}) => {
   try {
+    const isTiktok = url.includes('tiktokcdn') || url.includes('rapidcdn') || url.includes('d.rapidcdn.app')
     const res = await axios.get(url, {
       responseType: 'arraybuffer',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Referer': 'https://www.google.com/',
+        'User-Agent': isTiktok 
+          ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+          : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Referer': isTiktok ? 'https://www.tiktok.com/' : 'https://www.google.com/',
         ...options.headers
       },
       ...options,

@@ -3,7 +3,8 @@ import { findUrl, sendMedia, resolveUrl } from '../../system/helper.js'
 
 const apiNaze = 'https://api.naze.biz.id'
 const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
-const apiDanzy = 'https://api.danzy.web.id/api'
+// Danzy mirrors: api.danzy.web.id, api.danzy.pub, api.danzy.my.id
+const apiDanzy = 'https://api.danzy.pub/api' 
 const danzyKey = process.env.DANZY_API_KEY || 'isi_apikey_disini'
 const dl = async (url) => (await axios.get(url)).data
 
@@ -30,7 +31,13 @@ export default (ev) => {
                return
              }
              // Prioritize direct video links if available (nowm, no_watermark, etc)
-             const vUrl = dD.nowm || dD.no_watermark || dD.video || findUrl(dD, 'video')
+             let vUrl = dD.nowm || dD.no_watermark || dD.video
+             if (!vUrl && Array.isArray(dD.links)) {
+                // Find a link that looks like a real CDN link and NOT a play store or empty link
+                vUrl = dD.links.find(l => typeof l === 'string' && (l.includes('token=') || l.includes('tiktokcdn') || l.includes('rapidcdn')))
+             }
+             if (!vUrl) vUrl = findUrl(dD, 'video')
+             
              if (vUrl) return await sendMedia(xp, chat, vUrl, dD.title || 'Done ✨', m, 'video')
           }
         } catch (e) { console.error('TikTok Danzy Failed:', e.message) }
