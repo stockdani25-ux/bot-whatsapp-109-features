@@ -1,3 +1,4 @@
+import axios from 'axios'
 import Jimp from 'jimp'
 const apiDanzy = 'https://api.danzy.web.id/api'
 

@@ -1,3 +1,4 @@
+import axios from 'axios'
 import Jimp from 'jimp'
 
 const apiNaze = 'https://api.naze.biz.id'
