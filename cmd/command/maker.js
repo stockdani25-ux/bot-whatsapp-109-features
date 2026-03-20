@@ -1,6 +1,5 @@
 import axios from 'axios'
-import sharp from 'sharp'
-import { Sticker, StickerTypes } from 'wa-sticker-formatter'
+import Jimp from 'jimp'
 import { downloadMediaMessage } from '@whiskeysockets/baileys'
 import { uploadImage, getImageUrl } from '../../system/helper.js'
 
@@ -18,16 +17,21 @@ export default (ev) => {
   ev.on({
     cmd: ['s', 'sticker', 'stiker'],
     name: 'Sticker Maker',
-    run: async (xp, m, { chat }) => {
+    run: async (xp, m, { chat, args }) => {
       const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage
       const msg = m.message?.imageMessage || m.message?.videoMessage || quoted?.imageMessage || quoted?.videoMessage
       if (!msg) return xp.sendMessage(chat.id, { text: 'Kirim/reply gambar atau video untuk dijadikan stiker' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const buffer = await downloadMediaMessage(m, 'buffer', {})
-        const sticker = new Sticker(buffer, { pack: global.botName, author: global.ownerName, type: StickerTypes.FULL, quality: 50 })
-        await xp.sendMessage(chat.id, { sticker: await sticker.toBuffer() }, { quoted: m })
-      } catch (e) { console.error(e) }
+        const imgUrl = await getImageUrl(xp, m, args)
+        if (!imgUrl) throw new Error('Gagal mendapatkan URL gambar.')
+        // Gunakan API Naze untuk membuat stiker agar aman di Termux (Tanpa Sharp)
+        const stickerUrl = `${apiNaze}/maker/sticker?url=${encodeURIComponent(imgUrl)}&apikey=${nazeKey}`
+        await xp.sendMessage(chat.id, { sticker: { url: stickerUrl } }, { quoted: m })
+      } catch (e) { 
+        console.error(e) 
+        await xp.sendMessage(chat.id, { text: '❌ Gagal membuat stiker. Pastikan media benar.' }, { quoted: m })
+      }
     }
   })
 
@@ -83,9 +87,8 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: `Contoh: .${cmd} halo` }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const res = await axios.get(`${apiNaze}/create/${cmd}?text=${encodeURIComponent(text)}&apikey=${nazeKey}`, { responseType: 'arraybuffer' })
-        const sticker = new Sticker(res.data, { pack: 'ATTP', author: global.botName, type: StickerTypes.FULL })
-        await xp.sendMessage(chat.id, { sticker: await sticker.toBuffer() }, { quoted: m })
+        const resUrl = `${apiNaze}/create/${cmd}?text=${encodeURIComponent(text)}&apikey=${nazeKey}`
+        await xp.sendMessage(chat.id, { sticker: { url: resUrl } }, { quoted: m })
       } catch (e) { console.error(e) }
     }
   })
@@ -199,14 +202,8 @@ export default (ev) => {
       
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const res = await axios.get(`${apiNaze}/create/meme?url=${encodeURIComponent(imgUrl)}&text=${encodeURIComponent(t1)}&text2=${encodeURIComponent(t2)}&apikey=${nazeKey}`, { responseType: 'arraybuffer' })
-        const sticker = new Sticker(res.data, { 
-          pack: global.botName, 
-          author: global.ownerName, 
-          type: StickerTypes.FULL,
-          quality: 50
-        })
-        await xp.sendMessage(chat.id, { sticker: await sticker.toBuffer() }, { quoted: m })
+        const resUrl = `${apiNaze}/create/smeme?url=${encodeURIComponent(imgUrl)}&text=${encodeURIComponent(t1)}&text2=${encodeURIComponent(t2)}&apikey=${nazeKey}`
+        await xp.sendMessage(chat.id, { sticker: { url: resUrl } }, { quoted: m })
       } catch (e) { 
         console.error('Smeme error:', e)
         await xp.sendMessage(chat.id, { text: '❌ Gagal membuat smeme.' }, { quoted: m })
@@ -291,7 +288,8 @@ export default (ev) => {
         const url = res.data.url || res.data.result || res.data.data
         if (url) {
             const imgRes = await axios.get(url, { responseType: 'arraybuffer' })
-            const jpgBuffer = await sharp(imgRes.data).jpeg({ quality: 90 }).toBuffer()
+            const image = await Jimp.read(imgRes.data)
+            const jpgBuffer = await image.quality(90).getBufferAsync(Jimp.MIME_JPEG)
             await xp.sendMessage(chat.id, { image: jpgBuffer, mimetype: 'image/jpeg', fileName: 'deepnude.jpg', caption: 'Hasil Deepnude' }, { quoted: m })
         } else {
             await xp.sendMessage(chat.id, { text: '❌ Gagal memproses gambar.' }, { quoted: m })
