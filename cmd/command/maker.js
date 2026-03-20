@@ -127,7 +127,7 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: `Contoh: .${cmd} halo` }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        await xp.sendMessage(chat.id, { video: { url: `https://zyzzkylin1.vercel.app/api/image/bratv?text=${encodeURIComponent(text)}` }, caption: 'Done ✨' }, { quoted: m })
+        await xp.sendMessage(chat.id, { sticker: { url: `https://zyzzkylin1.vercel.app/api/image/bratv?text=${encodeURIComponent(text)}` } }, { quoted: m })
       } catch (e) { console.error(e) }
     }
   })

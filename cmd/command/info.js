@@ -27,81 +27,73 @@ export default (ev) => {
 
 *「 MAIN MENU 」*
 ⏧ ${prefix}profile
-⏧ ${prefix}claim
-⏧ ${prefix}transfer
-⏧ ${prefix}leaderboard
 ⏧ ${prefix}runtime
 ⏧ ${prefix}ping
 ⏧ ${prefix}afk
 ⏧ ${prefix}menfes
 ⏧ ${prefix}confes
 ⏧ ${prefix}roomai
-⏧ ${prefix}donasi
-
-*「 GROUP MENU 」*
-⏧ ${prefix}add
-⏧ ${prefix}kick
-⏧ ${prefix}promote / addadmingrup
-⏧ ${prefix}demote
-⏧ ${prefix}setdesc
-⏧ ${prefix}linkgrup
-⏧ ${prefix}tagall
-⏧ ${prefix}hidetag
-⏧ ${prefix}setnamegc
-⏧ ${prefix}setdescgc
-⏧ ${prefix}revoke
-⏧ ${prefix}setppgc
-
-*「 ROOM AI MENU 」*
-⏧ ${prefix}roomai <model>
-⏧ ${prefix}delroomai
-⏧ Models: kuroneko, metaai, wormgpt, gemini-lite
+⏧ ${prefix}owner
+⏧ ${prefix}tagme
 
 *「 AI MENU 」*
+⏧ ${prefix}ai
+⏧ ${prefix}chatgpt
+⏧ ${prefix}blackbox
+⏧ ${prefix}gemini
 ⏧ ${prefix}bypass
 ⏧ ${prefix}mathgpt
-⏧ ${prefix}perplexed
-⏧ ${prefix}gemini
 ⏧ ${prefix}deepimg
 ⏧ ${prefix}editimg
 
 *「 MAKER MENU 」*
 ⏧ ${prefix}sticker
 ⏧ ${prefix}brat
+⏧ ${prefix}bratv
 ⏧ ${prefix}qc
-⏧ ${prefix}ephoto
-⏧ ${prefix}blurface
-⏧ ${prefix}removebg
-⏧ ${prefix}deepnude
+⏧ ${prefix}ttp
+⏧ ${prefix}attp
+⏧ ${prefix}fakestory
+⏧ ${prefix}faketweet
+⏧ ${prefix}story-ig
+⏧ ${prefix}meme
+⏧ ${prefix}wasted
+⏧ ${prefix}triggered
+⏧ ${prefix}absolute-cinema
+⏧ ${prefix}skintone
 ⏧ ${prefix}smeme
+⏧ ${prefix}nulis
+⏧ ${prefix}ephoto
+⏧ ${prefix}toimg
+⏧ ${prefix}removebg
+⏧ ${prefix}blurface
+
+*「 DOWNLOADER MENU 」*
+⏧ ${prefix}tiktok
+⏧ ${prefix}ig
+⏧ ${prefix}fb
+⏧ ${prefix}ytmp4
+⏧ ${prefix}ytmp3
+⏧ ${prefix}spotify
+⏧ ${prefix}scdl
+⏧ ${prefix}ttmp3
+⏧ ${prefix}mediafire
+⏧ ${prefix}mega
+⏧ ${prefix}gdrive
+⏧ ${prefix}github
+⏧ ${prefix}aio
 
 *「 SEARCH MENU 」*
 ⏧ ${prefix}yts
 ⏧ ${prefix}lyrics
 ⏧ ${prefix}pinsearch
 ⏧ ${prefix}ttsearch
-
-*「 VIDEO DOWNLOADER 」*
-⏧ ${prefix}tiktok
-⏧ ${prefix}ig
-⏧ ${prefix}fb
-⏧ ${prefix}ytmp4
-⏧ ${prefix}aio
-
-*「 AUDIO DOWNLOADER 」*
-⏧ ${prefix}ytmp3
-⏧ ${prefix}spotify
-⏧ ${prefix}scdl
-⏧ ${prefix}ttmp3
-
-*「 PHOTO DOWNLOADER 」*
-⏧ ${prefix}pindl
-
-*「 DOCUMENT DOWNLOADER 」*
-⏧ ${prefix}mediafire
-⏧ ${prefix}mega
-⏧ ${prefix}gdrive
-⏧ ${prefix}github
+⏧ ${prefix}yimage
+⏧ ${prefix}applemusic
+⏧ ${prefix}scsearch
+⏧ ${prefix}genius
+⏧ ${prefix}pixiv
+⏧ ${prefix}lahelu
 
 *「 GAME MENU 」*
 ⏧ ${prefix}tictactoe
@@ -128,24 +120,48 @@ export default (ev) => {
 ⏧ ${prefix}siapakahaku
 ⏧ ${prefix}rob
 
-*「 RANDOM MENU 」*
-⏧ ${prefix}waifu
-⏧ ${prefix}neko
-⏧ ${prefix}quotesanime
-⏧ ${prefix}bluearchive
+*「 TOOLS MENU 」*
+⏧ ${prefix}hd
+⏧ ${prefix}remini
+⏧ ${prefix}removewm
+⏧ ${prefix}recolor
+⏧ ${prefix}mirror
+⏧ ${prefix}rotate
+⏧ ${prefix}pixel
+⏧ ${prefix}img2ansi
+⏧ ${prefix}rainbow
+⏧ ${prefix}sinonim
+⏧ ${prefix}singkatan
+⏧ ${prefix}rangkum
+⏧ ${prefix}blurphoto
+⏧ ${prefix}facepalm
+⏧ ${prefix}tolol
+
+*「 NEWS MENU 」*
+⏧ ${prefix}cnbc
+⏧ ${prefix}cnn
+⏧ ${prefix}kompas
+⏧ ${prefix}liputan6
+⏧ ${prefix}tribun
+⏧ ${prefix}jkt48
+
+*「 GROUP MENU 」*
+⏧ ${prefix}tagall
+⏧ ${prefix}hidetag
+⏧ ${prefix}add
+⏧ ${prefix}kick
+⏧ ${prefix}promote
+⏧ ${prefix}demote
+⏧ ${prefix}linkgrup
 
 *「 OWNER MENU 」*
 ⏧ ${prefix}public
 ⏧ ${prefix}self
 ⏧ ${prefix}restart
-⏧ ${prefix}stop
-⏧ ${prefix}setprefix
 ⏧ ${prefix}broadcast
 ⏧ ${prefix}eval
-⏧ ${prefix}exec
 ⏧ ${prefix}adduang
 ⏧ ${prefix}addlimit
-⏧ ${prefix}addrole
 ⏧ ${prefix}addowner
 ⏧ ${prefix}delowner`
 
