@@ -1,11 +1,11 @@
 {
   "botSetting": {
-    "botName": "DABI-BOT",
-    "botFullName": "DABI AI WHATSAPP BOT",
+    "botName": "DEMN-BOT",
+    "botFullName": "DEMN AI WHATSAPP BOT",
     "prefix": ".",
     "idCh": "1234567890@newsletter",
     "thumbnail": "https://c.termai.cc/i0/7DbG.jpg",
-    "footer": "© Dabi-Ai 2024",
+    "footer": "© DEMN-BOT 2024",
     "logic": "Kamu adalah asisten AI yang ramah."
   },
   "ownerSetting": {

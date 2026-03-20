@@ -1,46 +1,104 @@
-import fs from 'fs'
-
 export default (ev) => {
+
   ev.on({
-    cmd: ['antilink'],
-    name: 'Anti Link',
-    run: async (xp, m, { args, chat, isOwner }) => {
-      if (!chat.group) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
-      
-      const gcData = global.getGc(chat)
-      if (!gcData) return
-      
-      const input = args[0]?.toLowerCase()
-      if (input === 'on') {
-        gcData.filter.antilink = true
-        await xp.sendMessage(chat.id, { text: '*Anti-Link diaktifkan*' }, { quoted: m })
-      } else if (input === 'off') {
-        gcData.filter.antilink = false
-        await xp.sendMessage(chat.id, { text: '*Anti-Link dimatikan*' }, { quoted: m })
-      } else {
-        await xp.sendMessage(chat.id, { text: `Gunakan: .antilink on/off\nStatus: ${gcData.filter.antilink ? 'Aktif' : 'Mati'}` }, { quoted: m })
-      }
-      
-      // Persistence
-      const groupDbPath = 'system/db/group.json'
-      const db = JSON.parse(fs.readFileSync(groupDbPath, 'utf-8'))
-      db.key[chat.id] = gcData
-      fs.writeFileSync(groupDbPath, JSON.stringify(db, null, 2))
+    cmd: ['tagall', 'tagmember'],
+    name: 'Tag All Member',
+    run: async (xp, m, { chat, text }) => {
+      if (!chat.id.endsWith('@g.us')) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
+      const metadata = await xp.groupMetadata(chat.id)
+      const members = metadata.participants.map(p => p.id)
+      const msg = text || 'Hey!'
+      let teks = `📢 *${msg}*\n\n`
+      members.forEach(m2 => { teks += `@${m2.split('@')[0]}\n` })
+      await xp.sendMessage(chat.id, { text: teks, mentions: members }, { quoted: m })
     }
   })
 
   ev.on({
-    cmd: ['giveaway'],
-    name: 'Giveaway',
-    run: async (xp, m, { chat, isOwner }) => {
-      if (!chat.group) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
-      
-      const groupMetadata = await xp.groupMetadata(chat.id)
-      const participants = groupMetadata.participants
-      const randomMember = participants[Math.floor(Math.random() * participants.length)]
-      
-      const text = `🎉 *CONGRATULATIONS!* 🎉\n\nSelamat kepada @${randomMember.id.split('@')[0]} telah memenangkan giveaway hari ini!\nSilakan hubungi owner untuk klaim hadiah.`
-      await xp.sendMessage(chat.id, { text, mentions: [randomMember.id] }, { quoted: msg })
+    cmd: ['hidetag'],
+    name: 'Hide Tag',
+    run: async (xp, m, { chat, text }) => {
+      if (!chat.id.endsWith('@g.us')) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
+      const metadata = await xp.groupMetadata(chat.id)
+      const members = metadata.participants.map(p => p.id)
+      await xp.sendMessage(chat.id, { text: text || '‎', mentions: members }, { quoted: m })
+    }
+  })
+
+  ev.on({
+    cmd: ['add'],
+    name: 'Add Member',
+    run: async (xp, m, { args, chat }) => {
+      if (!chat.id.endsWith('@g.us')) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
+      if (!args[0]) return xp.sendMessage(chat.id, { text: 'Masukkan nomor yang mau ditambahkan.' }, { quoted: m })
+      const number = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+      try {
+        await xp.groupParticipantsUpdate(chat.id, [number], 'add')
+        await xp.sendMessage(chat.id, { text: `✅ Berhasil menambahkan @${args[0]}`, mentions: [number] }, { quoted: m })
+      } catch (e) {
+        xp.sendMessage(chat.id, { text: 'Gagal menambahkan member.' }, { quoted: m })
+      }
+    }
+  })
+
+  ev.on({
+    cmd: ['kick', 'remove'],
+    name: 'Kick Member',
+    run: async (xp, m, { chat }) => {
+      if (!chat.id.endsWith('@g.us')) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
+      const target = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0]
+        || m.message?.extendedTextMessage?.contextInfo?.participant
+      if (!target) return xp.sendMessage(chat.id, { text: 'Tag member yang mau dikick.' }, { quoted: m })
+      try {
+        await xp.groupParticipantsUpdate(chat.id, [target], 'remove')
+        await xp.sendMessage(chat.id, { text: `✅ @${target.split('@')[0]} berhasil dikick.`, mentions: [target] }, { quoted: m })
+      } catch (e) {
+        xp.sendMessage(chat.id, { text: 'Gagal kick member.' }, { quoted: m })
+      }
+    }
+  })
+
+  ev.on({
+    cmd: ['promote'],
+    name: 'Promote Member',
+    run: async (xp, m, { chat }) => {
+      if (!chat.id.endsWith('@g.us')) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
+      const target = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0]
+      if (!target) return xp.sendMessage(chat.id, { text: 'Tag member yang mau dipromote.' }, { quoted: m })
+      try {
+        await xp.groupParticipantsUpdate(chat.id, [target], 'promote')
+        await xp.sendMessage(chat.id, { text: `✅ @${target.split('@')[0]} berhasil dipromote jadi admin.`, mentions: [target] }, { quoted: m })
+      } catch (e) {
+        xp.sendMessage(chat.id, { text: 'Gagal promote member.' }, { quoted: m })
+      }
+    }
+  })
+
+  ev.on({
+    cmd: ['demote'],
+    name: 'Demote Admin',
+    run: async (xp, m, { chat }) => {
+      if (!chat.id.endsWith('@g.us')) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
+      const target = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0]
+      if (!target) return xp.sendMessage(chat.id, { text: 'Tag admin yang mau didemote.' }, { quoted: m })
+      try {
+        await xp.groupParticipantsUpdate(chat.id, [target], 'demote')
+        await xp.sendMessage(chat.id, { text: `✅ @${target.split('@')[0]} berhasil didemote.`, mentions: [target] }, { quoted: m })
+      } catch (e) {
+        xp.sendMessage(chat.id, { text: 'Gagal demote admin.' }, { quoted: m })
+      }
+    }
+  })
+
+  ev.on({
+    cmd: ['linkgrup', 'linkgc'],
+    name: 'Link Grup',
+    run: async (xp, m, { chat }) => {
+      if (!chat.id.endsWith('@g.us')) return xp.sendMessage(chat.id, { text: 'Hanya untuk grup!' }, { quoted: m })
+      try {
+        const code = await xp.groupInviteCode(chat.id)
+        await xp.sendMessage(chat.id, { text: `🔗 Link grup:\nhttps://chat.whatsapp.com/${code}` }, { quoted: m })
+      } catch (e) { xp.sendMessage(chat.id, { text: 'Gagal ambil link.' }, { quoted: m }) }
     }
   })
 }
