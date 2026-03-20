@@ -26,25 +26,28 @@ async function startBot() {
         auth: state,
         logger: pino({ level: 'silent' }),
         browser: Browsers.ubuntu('Chrome'),
-        printQRInTerminal: !process.argv.includes('--pairing'),
+        printQRInTerminal: false, // Matikan QR terminal agar fokus ke pairing code
         markOnlineOnConnect: false
     })
 
-    // Pairing Code Logic
-    if (process.argv.includes('--pairing') && !sock.authState.creds.registered) {
+    // Pairing Code Logic (Default)
+    if (!sock.authState.creds.registered) {
         let phoneNumber = process.env.PHONE_NUMBER || ''
         if (!phoneNumber) {
             phoneNumber = await question(chalk.yellowBright('Masukkan Nomor WhatsApp kamu (contoh: 628123xxx): '))
         }
-        rl.close()
         
         phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
         
         if (phoneNumber) {
             setTimeout(async () => {
-                let code = await sock.requestPairingCode(phoneNumber)
-                code = code?.match(/.{1,4}/g)?.join('-') || code
-                console.log(chalk.black.bgGreen(' PAIRING CODE ') + ` : ${chalk.bold.white(code)}`)
+                try {
+                    let code = await sock.requestPairingCode(phoneNumber)
+                    code = code?.match(/.{1,4}/g)?.join('-') || code
+                    console.log(chalk.black.bgGreen(' PAIRING CODE ') + ` : ${chalk.bold.white(code)}`)
+                } catch (err) {
+                    console.error(chalk.redBright('Gagal mendapatkan pairing code:'), err.message)
+                }
             }, 3000)
         } else {
             console.log(chalk.redBright('Error: Nomor WhatsApp tidak valid.'))
@@ -57,11 +60,7 @@ async function startBot() {
     sock.ev.on('creds.update', saveCreds)
 
     // Koneksi
-    sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
-        if (qr) {
-            console.log(chalk.yellowBright('Scan QR ini untuk menyambungkan:'))
-            qrcode.generate(qr, { small: true })
-        }
+    sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
             console.log(chalk.redBright.bold('Koneksi terputus.'), shouldReconnect ? 'Menghubungkan ulang...' : 'Logout.')
