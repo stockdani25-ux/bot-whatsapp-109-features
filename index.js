@@ -6,6 +6,7 @@ import { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, Disconn
 import pino from 'pino'
 import chalk from 'chalk'
 import 'dotenv/config'
+import qrcode from 'qrcode-terminal'
 import { loadAll, handleCmd } from './cmd/handle.js'
 import { getDb, saveDb, dailyReset, isOwner as checkOwner } from './system/helper.js'
 
@@ -21,9 +22,23 @@ async function startBot() {
         auth: state,
         logger: pino({ level: 'silent' }),
         browser: Browsers.ubuntu('Chrome'),
-        printQRInTerminal: true,
+        printQRInTerminal: !process.argv.includes('--pairing'),
         markOnlineOnConnect: false
     })
+
+    // Pairing Code Logic
+    if (process.argv.includes('--pairing') && !sock.authState.creds.registered) {
+        const phoneNumber = process.env.PHONE_NUMBER || ''
+        if (phoneNumber) {
+            setTimeout(async () => {
+                let code = await sock.getPairingCode(phoneNumber)
+                code = code?.match(/.{1,4}/g)?.join('-') || code
+                console.log(chalk.black.bgGreen(' PAIRING CODE ') + ` : ${chalk.bold.white(code)}`)
+            }, 3000)
+        } else {
+            console.log(chalk.redBright('Error: PHONE_NUMBER tidak ditemukan di .env untuk pairing code.'))
+        }
+    }
 
     // Load semua cmd/command files
     await loadAll()
@@ -31,7 +46,11 @@ async function startBot() {
     sock.ev.on('creds.update', saveCreds)
 
     // Koneksi
-    sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
+    sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+        if (qr) {
+            console.log(chalk.yellowBright('Scan QR ini untuk menyambungkan:'))
+            qrcode.generate(qr, { small: true })
+        }
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
             console.log(chalk.redBright.bold('Koneksi terputus.'), shouldReconnect ? 'Menghubungkan ulang...' : 'Logout.')

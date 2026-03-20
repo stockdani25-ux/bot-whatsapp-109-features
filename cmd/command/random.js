@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Jimp from 'jimp'
+import { Jimp } from 'jimp'
 const apiDanzy = 'https://api.danzy.web.id/api'
 
 export default (ev) => {
@@ -131,7 +131,7 @@ export default (ev) => {
         if (url) {
             const imgRes = await axios.get(url, { responseType: 'arraybuffer' })
             const image = await Jimp.read(imgRes.data)
-            const jpgBuffer = await image.quality(90).getBufferAsync(Jimp.MIME_JPEG)
+            const jpgBuffer = await image.getBuffer('image/jpeg', { quality: 90 })
             await xp.sendMessage(chat.id, { image: jpgBuffer, mimetype: 'image/jpeg', fileName: `${cmd}.jpg`, caption: `Done ✨ Category: ${cmd}` }, { quoted: m })
         } else throw new Error('No URL found')
       } catch (e) {

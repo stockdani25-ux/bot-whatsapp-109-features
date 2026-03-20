@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Jimp from 'jimp'
+import { Jimp } from 'jimp'
 
 const apiNaze = 'https://api.naze.biz.id'
 const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
@@ -361,7 +361,7 @@ export default (ev) => {
         
         // Convert to JPG using Jimp (fixes WebP saving issue)
         const image = await Jimp.read(res.data)
-        const jpgBuffer = await image.quality(90).getBufferAsync(Jimp.MIME_JPEG)
+        const jpgBuffer = await image.getBuffer('image/jpeg', { quality: 90 })
         return await xp.sendMessage(chat.id, { image: jpgBuffer, mimetype: 'image/jpeg', fileName: 'nsfwgen.jpg', caption: `NSFW Gen: ${text}` }, { quoted: m })
         
       } catch (e) {
@@ -373,7 +373,7 @@ export default (ev) => {
           if (tUrl) {
             const tImgRes = await axios.get(tUrl, { responseType: 'arraybuffer' })
             const tImage = await Jimp.read(tImgRes.data)
-            const tJpgBuffer = await tImage.quality(90).getBufferAsync(Jimp.MIME_JPEG)
+            const tJpgBuffer = await tImage.getBuffer('image/jpeg', { quality: 90 })
             return await xp.sendMessage(chat.id, { image: tJpgBuffer, mimetype: 'image/jpeg', fileName: 'nsfwgen_fallback.jpg', caption: `NSFW Gen (Fallback): ${text}` }, { quoted: m })
           }
         } catch (e2) {
