@@ -42,7 +42,7 @@ async function startBot() {
         
         if (phoneNumber) {
             setTimeout(async () => {
-                let code = await sock.getPairingCode(phoneNumber)
+                let code = await sock.requestPairingCode(phoneNumber)
                 code = code?.match(/.{1,4}/g)?.join('-') || code
                 console.log(chalk.black.bgGreen(' PAIRING CODE ') + ` : ${chalk.bold.white(code)}`)
             }, 3000)
