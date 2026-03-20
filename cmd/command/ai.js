@@ -3,7 +3,46 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import 'dotenv/config'
 
 const apiTermai = 'https://api.termai.cc'
-const termaiKey = 'Bell409'
+const termaiKey = process.env.TERMAI_API_KEY || 'Bell409'
+const apiNaze = 'https://api.naze.biz.id'
+const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
+const apiDanzy = process.env.DANZY_API_URL || 'https://api.danzy.web.id/api'
+
+const findUrl = (d, type = 'any') => {
+  if (!d) return null
+  const isMedia = (u) => {
+    if (typeof u !== 'string' || !u.startsWith('http')) return false
+    const lower = u.toLowerCase()
+    if (lower.includes('google.com/store') || lower.includes('apple.com/app')) return false
+    if (type === 'video') return lower.includes('.mp4') || lower.includes('.mov')
+    if (type === 'image') return lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') || lower.includes('.webp')
+    return true
+  }
+  if (typeof d === 'string' && isMedia(d)) return d
+  if (Array.isArray(d)) {
+    for (const item of d) {
+      const u = typeof item === 'string' ? item : (item?.url || item?.link || item?.image || item?.thumbnail)
+      if (typeof u === 'string' && (u.includes('.jpg') || u.includes('.png'))) return u
+    }
+    for (const item of d) {
+      const res = findUrl(item, type)
+      if (res) return res
+    }
+  }
+  if (typeof d === 'object') {
+    const priority = ['image', 'url', 'thumbnail', 'video', 'link']
+    for (const key of priority) {
+      if (typeof d[key] === 'string' && isMedia(d[key])) return d[key]
+    }
+    for (const key in d) {
+      if (typeof d[key] === 'object' || Array.isArray(d[key])) {
+        const res = findUrl(d[key], type)
+        if (res) return res
+      }
+    }
+  }
+  return null
+}
 
 export default (ev) => {
 
@@ -15,6 +54,16 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: 'Ada yang bisa saya bantu?' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
+        const resD = await axios.get(`${apiDanzy}/ai/chatgpt?text=${encodeURIComponent(text)}`).catch(() => null)
+        if (resD?.data) {
+          console.log('Danzy GPT Debug:', JSON.stringify(resD.data, null, 2))
+          const d = resD.data
+          const status = d.status === true || d.status === 200 || d.success === true
+          const content = d.data?.result || d.data || d.result
+          if (status && content && typeof content === 'string') {
+            return await xp.sendMessage(chat.id, { text: content + '\n\n(Danzy)' }, { quoted: m })
+          }
+        }
         const res = await axios.get(`${apiTermai}/api/ai/chatgpt?q=${encodeURIComponent(text)}&key=${termaiKey}`)
         if (res.data.status) await xp.sendMessage(chat.id, { text: res.data.data?.answer || res.data.data }, { quoted: m })
       } catch (e) { console.error(e) }
@@ -29,6 +78,16 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: 'Masukkan pertanyaan!' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
+        const resD = await axios.get(`${apiDanzy}/ai/blackbox?text=${encodeURIComponent(text)}`).catch(() => null)
+        if (resD?.data) {
+          console.log('Danzy Blackbox Debug:', JSON.stringify(resD.data, null, 2))
+          const d = resD.data
+          const status = d.status === true || d.status === 200 || d.success === true
+          const content = d.data?.result || d.data || d.result
+          if (status && content && typeof content === 'string') {
+            return await xp.sendMessage(chat.id, { text: content + '\n\n(Danzy)' }, { quoted: m })
+          }
+        }
         const res = await axios.get(`${apiTermai}/api/ai/blackbox?q=${encodeURIComponent(text)}&key=${termaiKey}`)
         if (res.data.status) await xp.sendMessage(chat.id, { text: res.data.data?.answer || res.data.data }, { quoted: m })
       } catch (e) { console.error(e) }
@@ -43,6 +102,16 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: 'Masukkan pertanyaan!' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
+        const resD = await axios.get(`${apiDanzy}/ai/gemini?text=${encodeURIComponent(text)}`).catch(() => null)
+        if (resD?.data) {
+          console.log('Danzy Gemini Debug:', JSON.stringify(resD.data, null, 2))
+          const d = resD.data
+          const status = d.status === true || d.status === 200 || d.success === true
+          const content = d.data?.result || d.data || d.result
+          if (status && content && typeof content === 'string') {
+            return await xp.sendMessage(chat.id, { text: content + '\n\n(Danzy)' }, { quoted: m })
+          }
+        }
         const apiKey = process.env.GEMINI_API_KEY || ''
         if (!apiKey) return xp.sendMessage(chat.id, { text: 'GEMINI_API_KEY belum diset di .env' }, { quoted: m })
         const genAI = new GoogleGenerativeAI(apiKey)
@@ -76,8 +145,19 @@ export default (ev) => {
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
         const res = await axios.get(`${apiTermai}/api/ai/deepai?prompt=${encodeURIComponent(text)}&key=${termaiKey}`)
-        if (res.data.status) await xp.sendMessage(chat.id, { image: { url: res.data.data }, caption: text }, { quoted: m })
-      } catch (e) { console.error(e) }
+        if (res.data) {
+           console.log('DeepAI Debug:', JSON.stringify(res.data, null, 2))
+           const url = findUrl(res.data)
+           if (url) {
+             console.log('Final DeepAI URL identified:', url)
+             return await xp.sendMessage(chat.id, { image: { url }, caption: text }, { quoted: m })
+           }
+        }
+        await xp.sendMessage(chat.id, { text: '❌ Gagal membuat gambar AI.' }, { quoted: m })
+      } catch (e) {
+        console.error(e)
+        await xp.sendMessage(chat.id, { text: `❌ Terjadi kesalahan: ${e.message}` }, { quoted: m })
+      }
     }
   })
 

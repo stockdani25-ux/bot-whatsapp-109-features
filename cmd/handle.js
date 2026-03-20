@@ -1,4 +1,4 @@
-import c from 'chalk'
+import chalk from 'chalk'
 import fs from 'fs'
 import p from 'path'
 import EventEmitter from 'events'
@@ -31,11 +31,17 @@ class CmdEmitter extends EventEmitter {
       const lc = c2.toLowerCase()
       const handler = async (xp, m, extra) => {
         try {
-          if (def.owner && !extra.isOwner) return
+          if (def.owner && !extra.isOwner) {
+              console.log(chalk.red(`[DENIED] Command "${lc}" oleh ${extra.pushName} - Bukan Owner`))
+              return
+          }
+          console.log(chalk.blue(`[EXEC] Menjalankan "${def.name || lc}" untuk ${extra.pushName}`))
           def.call += 1
           await def.run(xp, m, extra)
+          console.log(chalk.green(`[OK] Berhasil menjalankan "${def.name || lc}"`))
         } catch (e) {
-          console.error(c.redBright.bold(`Error ${def.name || c2}: `), e)
+          console.error(chalk.redBright.bold(`[ERR] Error ${def.name || c2}: `), e)
+          await xp.sendMessage(m.key.remoteJid, { text: `⚠️ *Error:* ${e.message}` })
         }
       }
       super.on(lc, handler)
@@ -62,7 +68,7 @@ export const loadAll = async () => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   const files = fs.readdirSync(dir).filter(x => x.endsWith('.js'))
   for (const f of files) await loadFile(f)
-  console.log(c.greenBright.bold(`✅ Berhasil memuat ${ev.cmd?.length || 0} cmd`))
+  console.log(chalk.greenBright.bold(`✅ Berhasil memuat ${ev.cmd?.length || 0} cmd`))
 }
 
 // Router utama: dipanggil dari index.js setiap ada pesan command

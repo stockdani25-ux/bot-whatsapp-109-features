@@ -1,13 +1,16 @@
 import axios from 'axios'
+import sharp from 'sharp'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { downloadMediaMessage } from '@whiskeysockets/baileys'
 import { uploadImage, getImageUrl } from '../../system/helper.js'
 
 const apiNaze = 'https://api.naze.biz.id'
-const nazeKey = 'nz-6f568e3e62'
+const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
 
-const sendImg = async (xp, m, url) =>
-  xp.sendMessage(m.key.remoteJid, { image: { url }, caption: 'Done ✨' }, { quoted: m })
+const sendImg = async (xp, m, url) => {
+  if (!url) return xp.sendMessage(m.key.remoteJid, { text: '❌ Gagal membuat gambar.' }, { quoted: m })
+  return xp.sendMessage(m.key.remoteJid, { image: { url }, caption: 'Done ✨' }, { quoted: m })
+}
 
 export default (ev) => {
 
@@ -47,8 +50,16 @@ export default (ev) => {
     run: async (xp, m, { text, chat, cmd }) => {
       if (!text) return xp.sendMessage(chat.id, { text: `Contoh: .${cmd} halo` }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
-      try { await sendImg(xp, m, `${apiNaze}/create/${cmd}?text=${encodeURIComponent(text)}&apikey=${nazeKey}`) }
-      catch (e) { console.error(e) }
+      try {
+        const resD = await axios.get(`https://api.danzy.web.id/api/maker/brat?text=${encodeURIComponent(text)}`, { responseType: 'arraybuffer' }).catch(() => null)
+        if (resD) {
+          console.log('Danzy Brat Status:', resD.status)
+          if (resD.status === 200) {
+            return await xp.sendMessage(chat.id, { image: Buffer.from(resD.data), caption: 'Done ✨ (Danzy)' }, { quoted: m })
+          }
+        }
+        await sendImg(xp, m, `${apiNaze}/create/${cmd}?text=${encodeURIComponent(text)}&apikey=${nazeKey}`)
+      } catch (e) { console.error(e) }
     }
   })
 
@@ -105,6 +116,44 @@ export default (ev) => {
     }
   })
 
+  // --- Brat Video ---
+  ev.on({
+    cmd: ['bratv'],
+    name: 'Brat Video Maker',
+    run: async (xp, m, { text, chat, cmd }) => {
+      if (!text) return xp.sendMessage(chat.id, { text: `Contoh: .${cmd} halo` }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        await xp.sendMessage(chat.id, { video: { url: `https://zyzzkylin1.vercel.app/api/image/bratv?text=${encodeURIComponent(text)}` }, caption: 'Done ✨' }, { quoted: m })
+      } catch (e) { console.error(e) }
+    }
+  })
+
+  // --- Instagram Story ---
+  ev.on({
+    cmd: ['story-ig', 'igstory'],
+    name: 'Instagram Story Maker',
+    run: async (xp, m, { text, chat, cmd }) => {
+      const p = text.split('|').map(x => x.trim())
+      if (p.length < 3) return xp.sendMessage(chat.id, { text: `Format: .${cmd} username|caption|link_avatar` }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try { await sendImg(xp, m, `https://zyzzkylin3.vercel.app/api/image/story-ig?username=${encodeURIComponent(p[0])}&caption=${encodeURIComponent(p[1])}&avatar=${encodeURIComponent(p[2])}`) }
+      catch (e) { console.error(e) }
+    }
+  })
+
+  // --- IQC 2 ---
+  ev.on({
+    cmd: ['iqc2'],
+    name: 'Quoted Chat Maker 2',
+    run: async (xp, m, { text, chat, cmd }) => {
+      if (!text) return xp.sendMessage(chat.id, { text: `Contoh: .${cmd} halo dunia` }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try { await sendImg(xp, m, `https://zyzzkylin1.vercel.app/api/image/iqc?text=${encodeURIComponent(text)}`) }
+      catch (e) { console.error(e) }
+    }
+  })
+
   // --- Meme / Meme2 ---
   ev.on({
     cmd: ['meme', 'meme2'],
@@ -133,6 +182,35 @@ export default (ev) => {
       const nazeCmd = cmd === 'absolutecinema' ? 'absolute-cinema' : cmd === 'skintone' ? 'skin-tone' : cmd
       try { await sendImg(xp, m, `${apiNaze}/create/${nazeCmd}?url=${encodeURIComponent(imgUrl)}&apikey=${nazeKey}`) }
       catch (e) { console.error(e) }
+    }
+  })
+
+  // --- Smeme (Sticker Meme) ---
+  ev.on({
+    cmd: ['smeme'],
+    name: 'Sticker Meme Maker',
+    run: async (xp, m, { args, text, chat }) => {
+      const imgUrl = await getImageUrl(xp, m, [])
+      if (!imgUrl) return xp.sendMessage(chat.id, { text: 'Reply atau kirim foto dengan teks: .smeme atas | bawah' }, { quoted: m })
+      
+      const parts = text.split('|').map(x => x.trim())
+      const t1 = parts[0] || ' '
+      const t2 = parts[1] || ' '
+      
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const res = await axios.get(`${apiNaze}/create/meme?url=${encodeURIComponent(imgUrl)}&text=${encodeURIComponent(t1)}&text2=${encodeURIComponent(t2)}&apikey=${nazeKey}`, { responseType: 'arraybuffer' })
+        const sticker = new Sticker(res.data, { 
+          pack: global.botName, 
+          author: global.ownerName, 
+          type: StickerTypes.FULL,
+          quality: 50
+        })
+        await xp.sendMessage(chat.id, { sticker: await sticker.toBuffer() }, { quoted: m })
+      } catch (e) { 
+        console.error('Smeme error:', e)
+        await xp.sendMessage(chat.id, { text: '❌ Gagal membuat smeme.' }, { quoted: m })
+      }
     }
   })
 
@@ -196,6 +274,28 @@ export default (ev) => {
         form.append('file', buf, { filename: 'image.jpg' })
         const res = await axios.post(`https://api.termai.cc/api/tools/${cmd}?key=dabi-ai`, form, { headers: form.getHeaders() })
         if (res.data.status) await xp.sendMessage(chat.id, { image: { url: res.data.url }, caption: `Hasil ${cmd}` }, { quoted: m })
+      } catch (e) { console.error(e) }
+    }
+  })
+
+  // --- Deepnude ---
+  ev.on({
+    cmd: ['deepnude'],
+    name: 'Deepnude Maker',
+    run: async (xp, m, { args, chat, cmd }) => {
+      const imgUrl = await getImageUrl(xp, m, args)
+      if (!imgUrl) return xp.sendMessage(chat.id, { text: 'Reply atau kirim gambar.' }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const res = await axios.get(`https://api.termai.cc/api/maker/deepnude?url=${encodeURIComponent(imgUrl)}&key=dabi-ai`)
+        const url = res.data.url || res.data.result || res.data.data
+        if (url) {
+            const imgRes = await axios.get(url, { responseType: 'arraybuffer' })
+            const jpgBuffer = await sharp(imgRes.data).jpeg({ quality: 90 }).toBuffer()
+            await xp.sendMessage(chat.id, { image: jpgBuffer, mimetype: 'image/jpeg', fileName: 'deepnude.jpg', caption: 'Hasil Deepnude' }, { quoted: m })
+        } else {
+            await xp.sendMessage(chat.id, { text: '❌ Gagal memproses gambar.' }, { quoted: m })
+        }
       } catch (e) { console.error(e) }
     }
   })

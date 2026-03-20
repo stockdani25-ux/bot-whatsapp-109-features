@@ -32,6 +32,7 @@ global.public = config.ownerSetting.public
 global.idCh = config.botSetting.idCh
 global.thumbnail = config.botSetting.thumbnail
 global.footer = config.botSetting.footer
+global.winChance = 10 // Default win chance level (1-100)
 
 // --- Helpers ---
 global.log = console.log
@@ -45,7 +46,7 @@ global.time = {
 global.number = (v) => v.replace(/[^0-9]/g, '')
 
 // Database Loaders (To be implemented in data.js)
-global.db = () => JSON.parse(fs.readFileSync(path.join(global.root, 'system/db/user.json'), 'utf-8'))
+global.db = () => JSON.parse(fs.readFileSync(path.join(global.root, 'user.json'), 'utf-8'))
 global.getGc = (chat) => {
     const db = JSON.parse(fs.readFileSync(path.join(global.root, 'system/db/group.json'), 'utf-8'))
     return Object.values(db.key).find(g => g.id === chat.id)
