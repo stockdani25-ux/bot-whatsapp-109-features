@@ -1,5 +1,4 @@
-import axios from 'axios'
-import sharp from 'sharp'
+import Jimp from 'jimp'
 
 const apiNaze = 'https://api.naze.biz.id'
 const nazeKey = process.env.NAZE_API_KEY || 'nz-6f568e3e62'
@@ -359,8 +358,9 @@ export default (ev) => {
         const primaryUrl = `https://kyzzzneko-xvz1.vercel.app/api/ai/nsfwgen?q=${encodeURIComponent(text)}`
         const res = await axios.get(primaryUrl, { responseType: 'arraybuffer' })
         
-        // Convert to JPG using sharp (fixes WebP saving issue)
-        const jpgBuffer = await sharp(res.data).jpeg({ quality: 90 }).toBuffer()
+        // Convert to JPG using Jimp (fixes WebP saving issue)
+        const image = await Jimp.read(res.data)
+        const jpgBuffer = await image.quality(90).getBufferAsync(Jimp.MIME_JPEG)
         return await xp.sendMessage(chat.id, { image: jpgBuffer, mimetype: 'image/jpeg', fileName: 'nsfwgen.jpg', caption: `NSFW Gen: ${text}` }, { quoted: m })
         
       } catch (e) {
@@ -371,7 +371,8 @@ export default (ev) => {
           const tUrl = terRes.data.url || terRes.data.result || terRes.data.data
           if (tUrl) {
             const tImgRes = await axios.get(tUrl, { responseType: 'arraybuffer' })
-            const tJpgBuffer = await sharp(tImgRes.data).jpeg({ quality: 90 }).toBuffer()
+            const tImage = await Jimp.read(tImgRes.data)
+            const tJpgBuffer = await tImage.quality(90).getBufferAsync(Jimp.MIME_JPEG)
             return await xp.sendMessage(chat.id, { image: tJpgBuffer, mimetype: 'image/jpeg', fileName: 'nsfwgen_fallback.jpg', caption: `NSFW Gen (Fallback): ${text}` }, { quoted: m })
           }
         } catch (e2) {
