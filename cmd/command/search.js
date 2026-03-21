@@ -256,9 +256,27 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .nulis nama saya dani' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const res = await axios.get(`https://api.neoxr.eu/api/nulis?text=${encodeURIComponent(text)}&apikey=lSBP2i`, { responseType: 'arraybuffer' })
-        await xp.sendMessage(chat.id, { image: Buffer.from(res.data), caption: 'Done ✨' }, { quoted: m })
-      } catch (e) { console.error(e) }
+        const res = await axios.get(`https://api.neoxr.eu/api/nulis?text=${encodeURIComponent(text)}&apikey=lSBP2i`)
+        
+        // Handle JSON response
+        if (typeof res.data === 'object' && res.data.status) {
+          const url = res.data.data?.url || res.data.result || res.data.data
+          if (url && typeof url === 'string' && url.startsWith('http')) {
+            return await xp.sendMessage(chat.id, { image: { url }, caption: 'Done ✨' }, { quoted: m })
+          }
+        }
+        
+        // Handle Buffer response (if not JSON)
+        if (Buffer.isBuffer(res.data) || (res.headers['content-type'] && res.headers['content-type'].includes('image'))) {
+           return await xp.sendMessage(chat.id, { image: Buffer.from(res.data), caption: 'Done ✨' }, { quoted: m })
+        }
+
+        const errMsg = res.data?.msg || res.data?.message || 'Gagal membuat tulisan.'
+        await xp.sendMessage(chat.id, { text: `❌ ${errMsg}` }, { quoted: m })
+      } catch (e) { 
+        console.error(e)
+        xp.sendMessage(chat.id, { text: `❌ Terjadi kesalahan: ${e.message}` }, { quoted: m })
+      }
     }
   })
 
@@ -270,9 +288,27 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .voicemaker halo apa kabar' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const res = await axios.get(`https://api.neoxr.eu/api/voicemaker?text=${encodeURIComponent(text)}&apikey=lSBP2i`, { responseType: 'arraybuffer' })
-        await xp.sendMessage(chat.id, { audio: Buffer.from(res.data), mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
-      } catch (e) { console.error(e) }
+        const res = await axios.get(`https://api.neoxr.eu/api/voicemaker?text=${encodeURIComponent(text)}&apikey=lSBP2i`)
+        
+        // Handle JSON response
+        if (typeof res.data === 'object' && res.data.status) {
+          const url = res.data.data?.url || res.data.result || res.data.data
+          if (url && typeof url === 'string' && url.startsWith('http')) {
+            return await xp.sendMessage(chat.id, { audio: { url }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
+          }
+        }
+        
+        // Handle Buffer response (if not JSON)
+        if (Buffer.isBuffer(res.data) || (res.headers['content-type'] && res.headers['content-type'].includes('audio'))) {
+           return await xp.sendMessage(chat.id, { audio: Buffer.from(res.data), mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
+        }
+        
+        const errMsg = res.data?.msg || res.data?.message || 'Gagal mendapatkan audio.'
+        await xp.sendMessage(chat.id, { text: `❌ ${errMsg}` }, { quoted: m })
+      } catch (e) { 
+        console.error(e)
+        xp.sendMessage(chat.id, { text: `❌ Terjadi kesalahan: ${e.message}` }, { quoted: m })
+      }
     }
   })
 
