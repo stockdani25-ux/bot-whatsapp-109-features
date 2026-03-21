@@ -140,4 +140,38 @@ export default (ev) => {
       }
     }
   })
+
+  // Cerita Horor (Lolhuman)
+  ev.on({
+    cmd: ['ceritahoror'],
+    name: 'Cerita Horor',
+    run: async (xp, m, { chat }) => {
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const res = await axios.get(`https://api.lolhuman.xyz/api/ceritahoror?apikey=8beb266ba3bea020048da0ab`)
+        if (res.data?.status === 200 && res.data?.result) {
+          const d = res.data.result
+          await xp.sendMessage(chat.id, { image: { url: d.thumbnail }, caption: `👻 *${d.title}*\n\n${d.story.slice(0, 3000)}` }, { quoted: m })
+        }
+      } catch (e) { console.error(e) }
+    }
+  })
+
+  // Search Bijak (Lolhuman)
+  ev.on({
+    cmd: ['bijaksearch', 'searchbijak'],
+    name: 'Search Kata Bijak',
+    run: async (xp, m, { text, chat }) => {
+      if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .bijaksearch cinta' }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const res = await axios.get(`https://api.lolhuman.xyz/api/searchbijak?apikey=8beb266ba3bea020048da0ab&query=${encodeURIComponent(text)}`)
+        if (res.data?.status === 200 && res.data?.result) {
+          const d = res.data.result
+          const txt = Array.isArray(d) ? d.join('\n\n') : d
+          await xp.sendMessage(chat.id, { text: `*Kata Bijak: ${text}*\n\n${txt}` }, { quoted: m })
+        }
+      } catch (e) { console.error(e) }
+    }
+  })
 }

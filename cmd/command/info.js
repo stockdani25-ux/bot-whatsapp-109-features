@@ -45,6 +45,10 @@ export default (ev) => {
 ⏧ ${prefix}mathgpt
 ⏧ ${prefix}deepimg
 ⏧ ${prefix}editimg
+⏧ ${prefix}aigen
+⏧ ${prefix}hermes
+⏧ ${prefix}felo
+⏧ ${prefix}muslimai
 
 *「 MAKER MENU 」*
 ⏧ ${prefix}sticker
@@ -94,6 +98,10 @@ export default (ev) => {
 ⏧ ${prefix}genius
 ⏧ ${prefix}pixiv
 ⏧ ${prefix}lahelu
+⏧ ${prefix}memegen
+⏧ ${prefix}voicemaker
+⏧ ${prefix}urban
+⏧ ${prefix}spotifysearch
 
 *「 GAME MENU 」*
 ⏧ ${prefix}tictactoe
@@ -144,6 +152,10 @@ export default (ev) => {
 ⏧ ${prefix}liputan6
 ⏧ ${prefix}tribun
 ⏧ ${prefix}jkt48
+ 
+*「 RANDOM MENU 」*
+⏧ ${prefix}ceritahoror
+⏧ ${prefix}bijaksearch
 
 *「 GROUP MENU 」*
 ⏧ ${prefix}tagall

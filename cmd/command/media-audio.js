@@ -17,17 +17,32 @@ export default (ev) => {
       if (!args[0]) return xp.sendMessage(chat.id, { text: `Contoh: .${cmd} https://open.spotify.com/track/xxx` }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
+        // 1. Try Ferdev API (New)
+        try {
+          const resF = await axios.get(`https://api.ferdev.my.id/downloader/spotify?link=${encodeURIComponent(args[0])}&apikey=fdv_BqeCpqsXuqEU5N-6fzQ8fA`)
+          if (resF.data?.status && resF.data?.result?.link) {
+            const d = resF.data.result
+            return await xp.sendMessage(chat.id, { audio: { url: d.link }, mimetype: 'audio/mpeg', fileName: `${d.title || 'spotify'}.mp3`, ptt: false }, { quoted: m })
+          }
+        } catch (e) { console.error('Spotify Ferdev Failed:', e.message) }
+
+        // 2. Fallback to Danzy
         const resD = await axios.get(`${apiDanzy}/download/spotify?url=${encodeURIComponent(args[0])}`).catch(() => null)
         if (resD?.data?.status && resD?.data?.data) {
           const d = resD.data.data
           const url = d.url || d.download || d.audio
           return await xp.sendMessage(chat.id, { audio: { url }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
         }
+
+        // 3. Fallback to Naze
         const res = await dl(`${apiNaze}/download/spotify/audio?url=${encodeURIComponent(args[0])}&apikey=${nazeKey}`)
         const d = res.result || res.data
         if (!d) return xp.sendMessage(chat.id, { text: 'Gagal.' }, { quoted: m })
         await xp.sendMessage(chat.id, { audio: { url: d.url || d.audio }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
-      } catch (e) { console.error(e) }
+      } catch (e) { 
+        console.error(e)
+        xp.sendMessage(chat.id, { text: '❌ Terjadi kesalahan saat mendownload Spotify.' }, { quoted: m })
+      }
     }
   })
 

@@ -211,4 +211,67 @@ export default (ev) => {
       } catch (e) { console.error(e) }
     }
   })
+
+  // Muslim AI (Harz)
+  ev.on({
+    cmd: ['muslimai'],
+    name: 'Muslim AI',
+    run: async (xp, m, { text, chat }) => {
+      if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .muslimai siapa itu nabi muhammad' }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const res = await axios.get(`https://api.harzrestapi.web.id/api/muslimai?text=${encodeURIComponent(text)}`)
+        await xp.sendMessage(chat.id, { text: res.data.result || res.data.data || 'Gagal.' }, { quoted: m })
+      } catch (e) { console.error(e) }
+    }
+  })
+
+  // Felo AI (Harz)
+  ev.on({
+    cmd: ['felo'],
+    name: 'Felo AI',
+    run: async (xp, m, { text, chat }) => {
+      if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .felo apa itu nextjs' }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const res = await axios.get(`https://api.harzrestapi.web.id/api/felo?text=${encodeURIComponent(text)}`)
+        await xp.sendMessage(chat.id, { text: res.data.result || res.data.data || 'Gagal.' }, { quoted: m })
+      } catch (e) { console.error(e) }
+    }
+  })
+
+  // Hermes AI (Harz)
+  ev.on({
+    cmd: ['hermes'],
+    name: 'Hermes AI',
+    run: async (xp, m, { text, chat }) => {
+      if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .hermes apa itu quantum physics' }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const res = await axios.get(`https://api.harzrestapi.web.id/api/hermes?text=${encodeURIComponent(text)}`)
+        await xp.sendMessage(chat.id, { text: res.data.result || res.data.data || 'Gagal.' }, { quoted: m })
+      } catch (e) { console.error(e) }
+    }
+  })
+
+  // AI Generate (Harz)
+  ev.on({
+    cmd: ['aigen', 'aigenerate'],
+    name: 'AI Image Generate',
+    run: async (xp, m, { text, chat }) => {
+      if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .aigen futuristic vibes --style anime' }, { quoted: m })
+      await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
+      try {
+        const style = text.includes('--style') ? text.split('--style')[1].trim() : 'anime'
+        const prompt = text.split('--style')[0].trim()
+        const res = await axios.get(`https://api.harzrestapi.web.id/api/aigenerate?prompt=${encodeURIComponent(prompt)}&style=${encodeURIComponent(style)}`)
+        const url = findUrl(res.data)
+        if (url) {
+          await xp.sendMessage(chat.id, { image: { url }, caption: `Prompt: ${prompt}\nStyle: ${style}` }, { quoted: m })
+        } else {
+          await xp.sendMessage(chat.id, { text: '❌ Gagal membuat gambar AI.' }, { quoted: m })
+        }
+      } catch (e) { console.error(e) }
+    }
+  })
 }
