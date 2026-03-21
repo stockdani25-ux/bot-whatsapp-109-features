@@ -240,7 +240,7 @@ export default (ev) => {
         // Upload to a temporary hosting if needed, but the API seems to take a direct image link.
         // For Neoxr API, it says "image=.", maybe it expects a URL.
         // Let's assume it needs a URL. I'll use a temporary file hosting or skip if not possible.
-        // Actually, the user just gave the URL structure: https://api.neoxr.eu/api/memegen?image=.&apikey=lSBP2i
+        // Actually, the user just gave the URL structure: https://api.neoxr.eu/api/memegen?image=.&apikey=ABMesn
         // I'll skip this if I can't easily get a URL for the image buffer.
         // Alternatively, use another API that supports buffers or just send a message.
         await xp.sendMessage(chat.id, { text: 'Fitur memegen membutuhkan URL gambar. Mohon gunakan link gambar langsung.' }, { quoted: m })
@@ -256,7 +256,7 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .nulis nama saya dani' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const res = await axios.get(`https://api.neoxr.eu/api/nulis?text=${encodeURIComponent(text)}&apikey=lSBP2i`)
+        const res = await axios.get(`https://api.neoxr.eu/api/nulis?text=${encodeURIComponent(text)}&apikey=ABMesn`)
         
         // Handle JSON response
         if (typeof res.data === 'object' && res.data.status) {
@@ -288,7 +288,7 @@ export default (ev) => {
       if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .voicemaker halo apa kabar' }, { quoted: m })
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const res = await axios.get(`https://api.neoxr.eu/api/voicemaker?text=${encodeURIComponent(text)}&apikey=lSBP2i`)
+        const res = await axios.get(`https://api.neoxr.eu/api/voicemaker?text=${encodeURIComponent(text)}&apikey=ABMesn`)
         
         // Handle JSON response
         if (typeof res.data === 'object' && res.data.status) {
