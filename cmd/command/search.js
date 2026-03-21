@@ -285,16 +285,24 @@ export default (ev) => {
     cmd: ['voicemaker', 'tts2'],
     name: 'Voice Maker',
     run: async (xp, m, { text, chat }) => {
-      if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .voicemaker halo apa kabar' }, { quoted: m })
+      if (!text) return xp.sendMessage(chat.id, { text: 'Contoh: .voicemaker male | halo apa kabar' }, { quoted: m })
+      
+      let [gender, q] = text.split('|').map(v => v.trim())
+      if (!q) {
+        q = gender
+        gender = 'male' // Default gender
+      }
+      
       await xp.sendMessage(chat.id, { react: { text: '⏳', key: m.key } })
       try {
-        const res = await axios.get(`https://api.neoxr.eu/api/voicemaker?text=${encodeURIComponent(text)}&apikey=ABMesn`)
+        const url = `https://api.neoxr.eu/api/voicemaker?text=${encodeURIComponent(q)}&gender=${encodeURIComponent(gender)}&apikey=ABMesn`
+        const res = await axios.get(url)
         
         // Handle JSON response
         if (typeof res.data === 'object' && res.data.status) {
-          const url = res.data.data?.url || res.data.result || res.data.data
-          if (url && typeof url === 'string' && url.startsWith('http')) {
-            return await xp.sendMessage(chat.id, { audio: { url }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
+          const dlUrl = res.data.data?.url || res.data.result || res.data.data
+          if (dlUrl && typeof dlUrl === 'string' && dlUrl.startsWith('http')) {
+            return await xp.sendMessage(chat.id, { audio: { url: dlUrl }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m })
           }
         }
         
